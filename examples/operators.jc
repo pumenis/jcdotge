@@ -1,0 +1,17 @@
+// integers start with #symbol
+!let( a  #3 )
+
+/* this is a
+   multyline comment */
+
+// funcs start with !symbol
+// variable interpolation needs $prefix
+// operators take any number of arguments
+!echo( (+ $a  $a  #2 ) )       // 6 
+!echo( (- #5 $a #1  #1 ) )     // 2
+!echo( (/ #12 (+ #1  $a ) ) )  // 3
+!echo( (* #3 #734 ) )          // 2202
+!echo( (% #15 #8 ) )           // 7
+
+// floats start with @symbol
+!echo( (* @5.53 @4.9 ) )      // 27.10

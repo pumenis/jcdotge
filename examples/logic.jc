@@ -1,0 +1,35 @@
+// basic comparison operators:
+
+// numeric types:
+!echo( [> #3  @3.1 ] )              // false
+!echo( [< #3  @3.1 ] )              // true
+!echo( [<= #3  @3.1 ] )             // true
+!echo( [<= #3  @3.0 ] )             // true
+!echo( [>= #3  @3.0 ] )             // true
+!echo( [>= #3  @3.1 ] )             // false
+!echo( [== #3  @3.0 ] )             // true
+!echo( [== #3  @3.1 ] )             // false
+!echo( [!= #3  @3.1 ] )             // true
+
+// string types:
+!echo( [>~ he  his ] )              // false
+!echo( [<~ he  his ] )              // true
+!echo( [>=~ he  his ] )             // false
+!echo( [=~ he  he ] )               // true
+!echo( [!=~ he  he ] )              // false
+
+// logical operators
+
+!echo( &&( [=~ he  he ] [> #3  #1 ] [== #1 #1 ] ) )   // true
+!echo( ||( [!=~ he  he ] [> #3  #1 ] [== #1 #5 ] ) )  // true 
+
+// if statement
+// can be followed by async methods like .toupper()
+if [> #5  #100 ] then
+    !echo( who? )
+  done
+  else
+    !echo( which? )
+  done
+fi .toupper()        // WHICH?
+

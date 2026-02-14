@@ -1,0 +1,19 @@
+// !echo() and !ls() are builtins too
+// methods start with . sign
+!echo( whoa boa ) .toupper()      // WHOA BOA
+
+// .tostring makes chaining output string
+!let( a !echo( Whoobly ) .tolower() .tostring() )    // 
+
+!echo( $a )                       // whoobly
+
+// you can use commands from system
+!echo( $a ) .sed( s/o/u/g )       // whuubly
+
+// if you want to use the command that is also a builtin
+// there is workaround
+// when flag doesnt have value it should take true which is !true
+!exec( ls -a !true )
+
+// if it is not builtin like awk, just use directly:
+!exec( echo hello unicorn ) .awk( "{print $2}" ) // unicorn

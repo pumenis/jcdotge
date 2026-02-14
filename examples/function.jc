@@ -1,0 +1,11 @@
+// functions are defined like bash does:
+
+function jaja do 
+    !echo( $1 $1 $1 )
+  done 
+end
+
+// functions are always declared as methods not funcs
+// so they need input empty chan string which is !* 
+
+!* .jaja( jojo ) .toupper()     // JOJO JOJO JOJO 

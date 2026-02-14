@@ -1,0 +1,15 @@
+// string concatenation and gethtml function and three types of quotes
+!exec( echo !gethtml( (. "https://jc.ge" `/robots` '.txt' ) ) ) .while-read(
+ -fields !true  start end some thing do
+    !echo( $start ) .tolower()
+  done
+)
+
+
+// or !while() function
+!let( a #0 )
+
+!while( :{ [< $a #5 ] }: do 
+    !echo( $a )   $a .set( (+ $a #1 ) )  
+  done 
+)

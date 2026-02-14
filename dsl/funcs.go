@@ -125,7 +125,9 @@ func echo(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Co
 				outPut = append(outPut, arg.String())
 			}
 		}
-		out <- strings.Join(outPut, " ")
+		for line := range strings.SplitSeq(strings.Join(outPut, " "), "\n") {
+			out <- line
+		}
 		close(out)
 	}()
 	return parser.NewContainerNode(out, parser.ChanStringType, value)
