@@ -1,5 +1,15 @@
 # JCdotge shell language
 
+## run file:
+```
+go run ./ example.jc some args
+```
+
+## run inline:
+```
+go run ./ -c '!echo( $0 )' some args
+```
+
 ## example script
 ```
 function hello do
