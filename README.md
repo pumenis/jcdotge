@@ -1,4 +1,4 @@
-# DsShit shell language
+# JCdotge shell language
 
 ## example script
 ```
