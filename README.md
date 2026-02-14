@@ -1,4 +1,4 @@
-# JCdotge shell language. The aim is to Promote JC.ge (Jvartamaghleba Church) (the Elevation of the Chross Church), Tbilisi, Georgia orthodox christian church website
+# JCdotge shell language. The aim is to Promote JC.ge (Jvartamaghleba Church) (the Elevation of the Chross Church), Tbilisi, Georgia Orthodox Christian Church website
 
 ## run file:
 ```
