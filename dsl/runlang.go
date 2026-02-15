@@ -323,6 +323,7 @@ func RunLang(value *parser.ContainerNode, args ...string) *parser.ContainerNode 
 		argName := strconv.Itoa(i)
 		value.Parts["$"+argName] = parser.NewContainerNode(arg, parser.StringType, value)
 	}
+	value.Parts["$argcount"] = parser.NewContainerNode(len(args), parser.IntType, value)
 
 	return eval(value)
 }
