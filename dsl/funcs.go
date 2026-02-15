@@ -139,7 +139,12 @@ func cat(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Con
 	go func() {
 		for _, arg := range args {
 
-			data, err := os.ReadFile(arg.String())
+			path, err := homedir.Expand(arg.String())
+			if err != nil {
+				panic("cat cannot expand path" + err.Error())
+			}
+
+			data, err := os.ReadFile(path)
 			if err != nil {
 				fmt.Println("Error reading file:", err)
 				return
