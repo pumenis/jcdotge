@@ -12,6 +12,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/pumenis/jcdotge/homedir"
 	"github.com/pumenis/jcdotge/parser"
 )
 
@@ -335,8 +336,29 @@ func while(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.C
 	return parser.NewContainerNode(out, parser.ChanStringType, value)
 }
 
+func runscript(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	path, err := homedir.Expand(args[0].String())
+	if err != nil {
+		panic("runscript error expanding path" + err.Error())
+	}
+	src, err := os.ReadFile(path)
+	if err != nil {
+		panic("runscript: cannot read script " + err.Error())
+	}
+
+	script, err := parser.Parse(string(src))
+	if err != nil {
+		panic(err)
+	}
+	for i, value := range args[1:] {
+		script.Parts["$"+strconv.Itoa(i+1)] = parser.NewContainerNode(value, parser.MapStringToStringType, script)
+	}
+	return eval(script)
+}
+
 func init() {
 	funcs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
+		"runscript":  runscript,
 		"sleep":      sleepFunc,
 		"nl":         nlFunc,
 		"gethtml":    getHTML,
