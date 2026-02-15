@@ -6,10 +6,12 @@ import (
 	"fmt"
 	"html/template"
 	"log"
+	"os"
 	"os/exec"
 	"strconv"
 	"strings"
 
+	"github.com/pumenis/jcdotge/homedir"
 	"github.com/pumenis/jcdotge/parser"
 )
 
@@ -387,6 +389,100 @@ func nlMethod(value *parser.ContainerNode, args ...*parser.ContainerNode) *parse
 	return parser.NewContainerNode(out, parser.ChanStringType, value)
 }
 
+func writeToFile(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	filename, err := homedir.Expand(args[0].String())
+	if err != nil {
+		panic("writefile: " + err.Error())
+	}
+	file, err := os.Create(filename)
+	if err != nil {
+		panic("writefile: " + err.Error())
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+
+	ch, ok := in.Name.(chan string)
+	if !ok {
+		panic("writefile: this is not chan string")
+	}
+	for line := range ch {
+		_, err = writer.WriteString(line + "\n")
+		if err != nil {
+			panic("writefile: " + err.Error())
+		}
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		panic("writefile: " + err.Error())
+	}
+	return parser.NewContainerNode(true, parser.BoolType, in)
+}
+
+func appendToFile(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	filename, err := homedir.Expand(args[0].String())
+	if err != nil {
+		panic("writefile: " + err.Error())
+	}
+	file, err := os.OpenFile(
+		filename,
+		os.O_APPEND|os.O_WRONLY|os.O_CREATE, // flags
+		0o644,                               // permissions (rw-r--r--)
+	)
+	if err != nil {
+		panic("writefile: " + err.Error())
+	}
+	defer file.Close()
+
+	writer := bufio.NewWriter(file)
+
+	ch, ok := in.Name.(chan string)
+	if !ok {
+		panic("writefile: this is not chan string")
+	}
+	for line := range ch {
+		_, err = writer.WriteString(line + "\n")
+		if err != nil {
+			panic("writefile: " + err.Error())
+		}
+	}
+
+	err = writer.Flush()
+	if err != nil {
+		panic("writefile: " + err.Error())
+	}
+	return parser.NewContainerNode(true, parser.BoolType, in)
+}
+
+func read(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	out := make(chan string)
+	count := 1
+	if len(args) > 0 {
+		var ok bool
+		count, ok = args[0].Name.(int)
+		if !ok {
+			panic("read: this is not int")
+		}
+	}
+	ch, ok := in.Name.(chan string)
+	if !ok {
+		panic("read: this is not chan string")
+	}
+	go func() {
+		i := 0
+		for line := range ch {
+			out <- line
+			i++
+			if count == i {
+				break
+			}
+		}
+		close(out)
+	}()
+	return parser.NewContainerNode(out, parser.ChanStringType, in)
+}
+
 func init() {
 	methodCallFuncs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
 		"pad":        padMethod,
@@ -404,5 +500,8 @@ func init() {
 		"while-read": whileRead,
 		"tmplparse":  tmplParse,
 		"exec":       exEc,
+		"writefile":  writeToFile,
+		"appendfile": appendToFile,
+		"read":       read,
 	}
 }

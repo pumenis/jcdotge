@@ -551,15 +551,6 @@ func Parse(code string) (*ContainerNode, error) {
 			continue
 		}
 
-		if strings.HasPrefix(token, "~") {
-			unquoted, err := strconv.Unquote(token[1:])
-			if err != nil {
-				fmt.Println("Error:", err)
-			}
-			current.Push(NewContainerNode(unquoted, StringType, current))
-			continue
-		}
-
 		if strings.HasPrefix(token, "'") ||
 			strings.HasPrefix(token, `"`) ||
 			strings.HasPrefix(token, "`") {
