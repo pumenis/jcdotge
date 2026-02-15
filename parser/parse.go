@@ -153,6 +153,17 @@ func (node *ContainerNode) FindVariableParent(variable string) *ContainerNode {
 	return nil
 }
 
+func (node *ContainerNode) VariableExists(variable string) bool {
+	parentNode := node.Parts["parent"]
+	for parentNode != nil {
+		if _, ok := parentNode.Parts[variable]; ok {
+			return true
+		}
+		parentNode = parentNode.Parts["parent"]
+	}
+	return false
+}
+
 func (node *ContainerNode) FindScopeParent() *ContainerNode {
 	node = node.Parts["parent"]
 	for node != nil {

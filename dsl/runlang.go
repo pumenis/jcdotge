@@ -508,7 +508,12 @@ func logic(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.C
 
 func variableGet(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	variableName := args[0].String()
-	return value.FindVariableParent("$" + variableName).Parts["$"+variableName]
+	parent := value.FindVariableParent("$" + variableName)
+	if parent != nil {
+		return parent.Parts["$"+variableName]
+	} else {
+		return parser.NewContainerNode(nil, parser.ContainerType, value)
+	}
 }
 
 func buildString(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
