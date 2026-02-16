@@ -41,9 +41,15 @@ func scopeEvalFunc(args ...*parser.ContainerNode) []*parser.ContainerNode {
 	chain := []*parser.ContainerNode{}
 	result := []*parser.ContainerNode{}
 	for i, component := range args {
-		if strings.HasPrefix(component.String(), ".") || component.String() == "[" || component.Type == parser.PropertyType {
+		if component.Type == parser.EmptyMethodType ||
+			component.Type == parser.MethodType ||
+			component.String() == "[" ||
+			component.Type == parser.PropertyType {
 			chain = append(chain, component)
-			if len(args)-1 == i || (!strings.HasPrefix(args[i+1].String(), ".") && args[i+1].String() != "[" && args[i+1].Type != parser.PropertyType) {
+			if len(args)-1 == i || (args[i+1].Type != parser.EmptyMethodType &&
+				args[i+1].Type != parser.MethodType &&
+				args[i+1].String() != "[" &&
+				args[i+1].Type != parser.PropertyType) {
 				variable := chain[0]
 
 				for _, currentNode := range chain[1:] {
@@ -97,7 +103,9 @@ func scopeEvalFunc(args ...*parser.ContainerNode) []*parser.ContainerNode {
 				result = append(result, eValue)
 				chain = []*parser.ContainerNode{}
 			}
-		} else if len(args)-1 > i && (strings.HasPrefix(args[i+1].String(), ".") || args[i+1].String() == "[" || args[i+1].Type == parser.PropertyType) {
+		} else if len(args)-1 > i && (args[i+1].Type == parser.EmptyMethodType ||
+			args[i+1].Type == parser.MethodType ||
+			args[i+1].String() == "[" || args[i+1].Type == parser.PropertyType) {
 			eValue := eval(component)
 			chain = append(chain, eValue)
 		} else {
