@@ -490,6 +490,24 @@ func read(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Conta
 	return parser.NewContainerNode(out, parser.ChanStringType, in)
 }
 
+func split(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	out := make(chan string)
+	ch, ok := in.Name.(chan string)
+	if !ok {
+		panic("split this is not chan string")
+	}
+	go func() {
+		for line := range ch {
+			for splitted := range strings.SplitSeq(line, args[0].String()) {
+				out <- splitted
+			}
+		}
+		close(out)
+	}()
+
+	return parser.NewContainerNode(out, parser.ChanStringType, in)
+}
+
 func init() {
 	methodCallFuncs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
 		"pad":        padMethod,
@@ -510,5 +528,6 @@ func init() {
 		"writefile":  writeToFile,
 		"appendfile": appendToFile,
 		"read":       read,
+		"split":      split,
 	}
 }
