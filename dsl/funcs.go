@@ -361,6 +361,14 @@ func runscript(value *parser.ContainerNode, args ...*parser.ContainerNode) *pars
 	return eval(script)
 }
 
+func homeexpand(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	path, err := homedir.Expand(args[0].String())
+	if err != nil {
+		panic("homeexpand: " + err.Error())
+	}
+	return parser.NewContainerNode(path, parser.StringType, value)
+}
+
 func init() {
 	funcs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
 		"runscript":  runscript,
@@ -379,5 +387,6 @@ func init() {
 		"trimprefix": trimPrefixFunc,
 		"trimsuffix": trimSuffixFunc,
 		"exec":       eXec,
+		"homeexpand": homeexpand,
 	}
 }
