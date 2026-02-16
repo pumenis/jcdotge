@@ -378,6 +378,10 @@ func homeexpand(value *parser.ContainerNode, args ...*parser.ContainerNode) *par
 	return parser.NewContainerNode(path, parser.StringType, value)
 }
 
+func trimspace(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	return parser.NewContainerNode(strings.TrimSpace(args[0].String()), parser.StringType, value)
+}
+
 func init() {
 	funcs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
 		"runscript":  runscript,
@@ -397,5 +401,6 @@ func init() {
 		"trimsuffix": trimSuffixFunc,
 		"exec":       eXec,
 		"homeexpand": homeexpand,
+		"trimspace":  trimspace,
 	}
 }
