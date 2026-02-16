@@ -77,10 +77,10 @@ func eXec(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Co
 			accumulator = append(accumulator, errscanner.Text())
 		}
 		if err := scanner.Err(); err != nil {
-			panic("exec " + err.Error() + strings.Join(accumulator, "\n"))
+			fmt.Println(strings.Join(accumulator, "\n"))
 		}
 		if err := cmd.Wait(); err != nil {
-			panic("exec " + err.Error() + strings.Join(accumulator, "\n"))
+			fmt.Println(strings.Join(accumulator, "\n"))
 		}
 
 		close(out)
