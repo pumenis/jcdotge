@@ -57,8 +57,13 @@ func eXec(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Co
 	if err != nil {
 		panic("exec func " + err.Error())
 	}
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		panic("exec func stderr" + err.Error())
+	}
 
 	scanner := bufio.NewScanner(stdout)
+	errscanner := bufio.NewScanner(stderr)
 	go func() {
 		if err := cmd.Start(); err != nil {
 			panic("exec func " + err.Error())
@@ -67,11 +72,15 @@ func eXec(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Co
 		for scanner.Scan() {
 			out <- scanner.Text()
 		}
+		accumulator := []string{}
+		for errscanner.Scan() {
+			accumulator = append(accumulator, errscanner.Text())
+		}
 		if err := scanner.Err(); err != nil {
-			panic("exec " + err.Error())
+			panic("exec " + err.Error() + strings.Join(accumulator, "\n"))
 		}
 		if err := cmd.Wait(); err != nil {
-			panic("exec " + err.Error())
+			panic("exec " + err.Error() + strings.Join(accumulator, "\n"))
 		}
 
 		close(out)
