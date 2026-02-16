@@ -142,12 +142,15 @@ func exEc(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Conta
 
 	cmd := exec.Command(args[0].String(), arguments...)
 
-	// Get pipes BEFORE starting command
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	stderr, err := cmd.StderrPipe()
+	if err != nil {
+		panic("exec func stderr" + err.Error())
+	}
 	stdin, err := cmd.StdinPipe()
 	if err != nil {
 		log.Fatal(err)
@@ -158,7 +161,6 @@ func exEc(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Conta
 		panic("stdin method inchan is not chan string")
 	}
 
-	// Handle stdin in separate goroutine
 	go func() {
 		defer stdin.Close()
 		for line := range inchan {
@@ -181,12 +183,17 @@ func exEc(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Conta
 			out <- scanner.Text()
 		}
 
+		errscanner := bufio.NewScanner(stderr)
+		accumulator := []string{}
+		for errscanner.Scan() {
+			accumulator = append(accumulator, errscanner.Text())
+		}
 		if err := scanner.Err(); err != nil {
-			panic("exec: " + err.Error())
+			panic("exec: " + err.Error() + strings.Join(accumulator, "\n"))
 		}
 
 		if err := cmd.Wait(); err != nil {
-			panic("exec: " + err.Error())
+			panic("exec: " + err.Error() + strings.Join(accumulator, "\n"))
 		}
 	}()
 
