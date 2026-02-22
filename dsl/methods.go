@@ -508,6 +508,18 @@ func split(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Cont
 	return parser.NewContainerNode(out, parser.ChanStringType, in)
 }
 
+func clone(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	return parser.NewContainerNode(value.Name, value.Type, value)
+}
+
+func let(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	scopeParent := value.FindScopeParent()
+	variable := value
+	variable.Parts["parent"] = scopeParent
+	scopeParent.Parts["$"+args[0].String()] = variable
+	return parser.NewContainerNode(true, parser.BoolType, value)
+}
+
 func init() {
 	methodCallFuncs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
 		"pad":        padMethod,
@@ -529,5 +541,7 @@ func init() {
 		"appendfile": appendToFile,
 		"read":       read,
 		"split":      split,
+		"clone":      clone,
+		"let":        let,
 	}
 }

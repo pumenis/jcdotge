@@ -143,6 +143,30 @@ func echo(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Co
 	return parser.NewContainerNode(out, parser.ChanStringType, value)
 }
 
+func echoGetHTML(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	out := make(chan string)
+	url := args[0].String()
+	resp, err := http.Get(url)
+	if err != nil {
+		fmt.Println("cannot get data from url")
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode == http.StatusTooManyRequests {
+		fmt.Println("Received 429 Too Many Requests")
+	}
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		fmt.Println("cannot read body of response")
+	}
+	go func() {
+		for line := range strings.SplitSeq(string(body), "\n") {
+			out <- line
+		}
+		close(out)
+	}()
+	return parser.NewContainerNode(out, parser.ChanStringType, value)
+}
+
 func cat(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	out := make(chan string)
 	go func() {
@@ -384,23 +408,24 @@ func trimspace(value *parser.ContainerNode, args ...*parser.ContainerNode) *pars
 
 func init() {
 	funcs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
-		"runscript":  runscript,
-		"sleep":      sleepFunc,
-		"nl":         nlFunc,
-		"gethtml":    getHTML,
-		"print":      printFunc,
-		"let":        varInitialize,
-		"mkdir":      mkdir,
-		"stdin":      stdin,
-		"echo":       echo,
-		"cat":        cat,
-		"ls":         ls,
-		"exit":       exitFunc,
-		"while":      while,
-		"trimprefix": trimPrefixFunc,
-		"trimsuffix": trimSuffixFunc,
-		"exec":       eXec,
-		"homeexpand": homeexpand,
-		"trimspace":  trimspace,
+		"runscript":   runscript,
+		"sleep":       sleepFunc,
+		"nl":          nlFunc,
+		"gethtml":     getHTML,
+		"print":       printFunc,
+		"let":         varInitialize,
+		"mkdir":       mkdir,
+		"stdin":       stdin,
+		"echo":        echo,
+		"cat":         cat,
+		"ls":          ls,
+		"exit":        exitFunc,
+		"while":       while,
+		"trimprefix":  trimPrefixFunc,
+		"trimsuffix":  trimSuffixFunc,
+		"exec":        eXec,
+		"homeexpand":  homeexpand,
+		"trimspace":   trimspace,
+		"echogethtml": echoGetHTML,
 	}
 }
