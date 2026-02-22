@@ -389,7 +389,7 @@ func runscript(value *parser.ContainerNode, args ...*parser.ContainerNode) *pars
 		panic(err)
 	}
 	for i, val := range args[1:] {
-		script.Parts["$"+strconv.Itoa(i+1)] = parser.NewContainerNode(val.Name, val.Type, script)
+		script.Parts["$"+strconv.Itoa(i)] = val
 	}
 	script.Parts["parent"] = value
 	return eval(script)
