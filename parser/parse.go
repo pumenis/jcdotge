@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"unicode"
 )
 
 type (
@@ -355,36 +356,46 @@ func splitIntoChunks(input string) []string {
 		return chunks
 	}
 
-	var currentChunk string
+	runes := []rune(input)
+	if len(runes) == 0 {
+		return chunks
+	}
+
+	var currentChunk strings.Builder
 	var isCurrentWhitespace bool
 
-	currentChunk = string(input[0])
-	isCurrentWhitespace = isWhitespaceRune(rune(input[0]))
+	firstRune := runes[0]
+	currentChunk.WriteRune(firstRune)
+	isCurrentWhitespace = unicode.IsSpace(firstRune)
 
-	for i := 1; i < len(input); i++ {
-		r := rune(input[i])
-		isWhitespace := isWhitespaceRune(r)
+	for i := 1; i < len(runes); i++ {
+		r := runes[i]
+		isWhitespace := unicode.IsSpace(r)
 
-		if r == '\n' && len(currentChunk) > 0 && currentChunk[len(currentChunk)-1] == '\r' {
-			currentChunk += string(r)
-			continue
+		if r == '\n' {
+			chunkRunes := []rune(currentChunk.String())
+			if len(chunkRunes) > 0 && chunkRunes[len(chunkRunes)-1] == '\r' {
+				currentChunk.WriteRune(r)
+				continue
+			}
 		}
 
 		if isWhitespace == isCurrentWhitespace {
-			currentChunk += string(r)
+			currentChunk.WriteRune(r)
 		} else {
-			chunks = append(chunks, currentChunk)
-			currentChunk = string(r)
+			chunks = append(chunks, currentChunk.String())
+			currentChunk.Reset()
+			currentChunk.WriteRune(r)
 			isCurrentWhitespace = isWhitespace
 		}
 	}
 
-	chunks = append(chunks, currentChunk)
+	chunks = append(chunks, currentChunk.String())
 	return chunks
 }
 
 func isWhitespaceRune(r rune) bool {
-	return r == ' ' || r == '\t' || r == '\n' || r == '\r' || r == '\f' || r == '\v'
+	return unicode.IsSpace(r)
 }
 
 func Parse(code string) (*ContainerNode, error) {
