@@ -8,16 +8,15 @@ import (
 
 func iF(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	out := make(chan string)
-	if ifCheckValue, ok := eval(value.Parts["0"]).Name.(bool); ok && ifCheckValue {
+	ifCheckValue, ok := eval(value.Parts["0"]).Name.(bool)
+	if ok && ifCheckValue {
 		value.Parts["1"].Parts["scope"] = parser.NewContainerNode(true, parser.BoolType, value.Parts["1"])
-
+		var components []*parser.ContainerNode
+		for i := 0; i < value.Parts["1"].Parts["length"].Name.(int); i++ {
+			components = append(components, value.Parts["1"].Parts[strconv.Itoa(i)])
+		}
+		components = scopeEvalFunc(components...)
 		go func() {
-			var components []*parser.ContainerNode
-			for i := 0; i < value.Parts["1"].Parts["length"].Name.(int); i++ {
-				components = append(components, value.Parts["1"].Parts[strconv.Itoa(i)])
-			}
-
-			components = scopeEvalFunc(components...)
 			for _, component := range components {
 				if component.Type == parser.ChanStringType {
 					ch, ok := component.Name.(chan string)
@@ -29,20 +28,16 @@ func iF(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Cont
 					}
 				}
 			}
-
 			close(out)
 		}()
-		if value.Parts["length"].Name.(int) <= 2 {
-			return parser.NewContainerNode(out, parser.ChanStringType, value)
+	} else if elseblock, ok := value.Parts["2"]; ok {
+		elseblock.Parts["scope"] = parser.NewContainerNode(true, parser.BoolType, elseblock)
+		var components []*parser.ContainerNode
+		for i := 0; i < elseblock.Parts["length"].Name.(int); i++ {
+			components = append(components, elseblock.Parts[strconv.Itoa(i)])
 		}
-	} else {
-		value.Parts["2"].Parts["scope"] = parser.NewContainerNode(true, parser.BoolType, value.Parts["2"])
+		components = scopeEvalFunc(components...)
 		go func() {
-			var components []*parser.ContainerNode
-			for i := 0; i < value.Parts["2"].Parts["length"].Name.(int); i++ {
-				components = append(components, value.Parts["2"].Parts[strconv.Itoa(i)])
-			}
-			components = scopeEvalFunc(components...)
 			for _, component := range components {
 				if component.Type == parser.ChanStringType {
 					ch, ok := component.Name.(chan string)
