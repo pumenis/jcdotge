@@ -273,6 +273,10 @@ func stdoutFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *par
 }
 
 func toStringFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	joiner := "\n"
+	if len(args) > 1 {
+		joiner = args[0].String()
+	}
 	in, ok := value.Name.(chan string)
 	if !ok {
 		panic("stdoutMethod expects chan string as input type")
@@ -281,7 +285,7 @@ func toStringFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *p
 	for line := range in {
 		str = append(str, line)
 	}
-	return parser.NewContainerNode(strings.Join(str, "\n"), parser.StringType, value)
+	return parser.NewContainerNode(strings.Join(str, joiner), parser.StringType, value)
 }
 
 func tmplParse(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
