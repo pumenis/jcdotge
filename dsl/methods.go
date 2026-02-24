@@ -274,7 +274,7 @@ func stdoutFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *par
 
 func toStringFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	joiner := "\n"
-	if len(args) > 1 {
+	if len(args) > 0 {
 		joiner = args[0].String()
 	}
 	in, ok := value.Name.(chan string)
