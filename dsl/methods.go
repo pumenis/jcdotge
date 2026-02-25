@@ -520,7 +520,9 @@ func let(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Con
 	scopeParent := value.FindScopeParent()
 	variable := value
 	variable.Parts["parent"] = scopeParent
+	scopeParent.Mu.Lock()
 	scopeParent.Parts["$"+args[0].String()] = variable
+	scopeParent.Mu.Unlock()
 	return parser.NewContainerNode(true, parser.BoolType, value)
 }
 

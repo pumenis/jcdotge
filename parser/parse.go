@@ -149,8 +149,8 @@ func (node *ContainerNode) FindVariableParent(variable string) *ContainerNode {
 	parentNode := node.Parts["parent"]
 	for parentNode != nil {
 		parentNode.Mu.RLock()
-		defer parentNode.Mu.RUnlock()
 		_, ok := parentNode.Parts[variable]
+		parentNode.Mu.RUnlock()
 		if ok {
 			return parentNode
 		}
