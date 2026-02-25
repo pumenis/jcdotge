@@ -518,7 +518,10 @@ func variableGet(value *parser.ContainerNode, args ...*parser.ContainerNode) *pa
 	variableName := args[0].String()
 	parent := value.FindVariableParent("$" + variableName)
 	if parent != nil {
-		return parent.Parts["$"+variableName]
+		parent.Mu.RLock()
+		res := parent.Parts["$"+variableName]
+		parent.Mu.RUnlock()
+		return res
 	} else {
 		return parser.NewContainerNode(nil, parser.ContainerType, value)
 	}
