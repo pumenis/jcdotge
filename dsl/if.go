@@ -52,6 +52,8 @@ func iF(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Cont
 
 			close(out)
 		}()
+	} else {
+		close(out)
 	}
 	return parser.NewContainerNode(out, parser.ChanStringType, value)
 }
