@@ -6,6 +6,7 @@ import (
 	"reflect"
 	"strconv"
 	"strings"
+	"sync"
 	"unicode"
 )
 
@@ -136,6 +137,7 @@ func NewContainerNode(name any, targetType reflect.Type, parent *ContainerNode) 
 type ContainerNode struct {
 	Name  any
 	Type  reflect.Type
+	Mu    sync.RWMutex
 	Parts map[string]*ContainerNode
 }
 
@@ -146,7 +148,10 @@ func (node *ContainerNode) Call(funcsMap map[string]func(*ContainerNode, ...*Con
 func (node *ContainerNode) FindVariableParent(variable string) *ContainerNode {
 	parentNode := node.Parts["parent"]
 	for parentNode != nil {
-		if _, ok := parentNode.Parts[variable]; ok {
+		parentNode.Mu.RLock()
+		defer parentNode.Mu.RUnlock()
+		_, ok := parentNode.Parts[variable]
+		if ok {
 			return parentNode
 		}
 		parentNode = parentNode.Parts["parent"]

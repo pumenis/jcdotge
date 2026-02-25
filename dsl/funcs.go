@@ -93,6 +93,8 @@ func varInitialize(value *parser.ContainerNode, args ...*parser.ContainerNode) *
 	scopeParent := value.FindScopeParent()
 	variable := args[1]
 	variable.Parts["parent"] = scopeParent
+	scopeParent.Mu.RLock()
+	defer scopeParent.Mu.RUnlock()
 	scopeParent.Parts["$"+args[0].String()] = variable
 	return parser.NewContainerNode(true, parser.BoolType, value)
 }

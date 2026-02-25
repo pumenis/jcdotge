@@ -29,12 +29,12 @@ func eval(value *parser.ContainerNode) *parser.ContainerNode {
 }
 
 func chainFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
-	newNode := *value
+	newNode := parser.NewContainerNode(value.Name, value.Type, value.Parts["parent"])
 	newNode.Parts = make(map[string]*parser.ContainerNode)
 	maps.Copy(newNode.Parts, value.Parts)
 	newNode.Parts["0"] = eval(newNode.Parts["0"])
 	newNode.Name = ":{"
-	return eval(&newNode)
+	return eval(newNode)
 }
 
 func scopeEvalFunc(args ...*parser.ContainerNode) []*parser.ContainerNode {
@@ -631,11 +631,11 @@ func buildMapStringToFloat64(value *parser.ContainerNode, args ...*parser.Contai
 }
 
 func flagFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
-	outValue := *value
+	outValue := parser.NewContainerNode(value.Name, value.Type, value.Parts["parent"])
 	outValue.Parts = make(map[string]*parser.ContainerNode)
 	maps.Copy(outValue.Parts, value.Parts)
 	outValue.Parts["1"] = eval(args[1])
-	return &outValue
+	return outValue
 }
 
 func returnSelf(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
