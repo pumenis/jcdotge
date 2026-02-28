@@ -267,14 +267,6 @@ func (node *ContainerNode) String() string {
 		return ""
 	}
 
-	return node.printTree()
-}
-
-func (node *ContainerNode) printTree() string {
-	if node == nil {
-		return ""
-	}
-
 	returnValue := ""
 
 	switch node.Type {
@@ -318,11 +310,44 @@ func (node *ContainerNode) printTree() string {
 	return returnValue
 }
 
+func (node *ContainerNode) Highlight() string {
+	if node == nil {
+		return ""
+	}
+
+	return node.Highlight()
+}
+
 func (node *ContainerNode) Inspect() string {
 	if node == nil {
 		return ""
 	}
 
+	returnValue := ""
+	lengthNode, lengthExists := node.Parts["length"]
+
+	ender := ""
+	returnValue += `<i t="` + node.Type.String() + `">`
+
+	switch node.Type {
+	case NodeType, FuncType, EmptyFuncType, MethodType:
+		returnValue += `<i s="` +
+			strings.ReplaceAll(node.String(), `"`, `&quot;`) + `">` +
+			node.String() + `</i>`
+	}
+
+	if lengthExists {
+		if _, ok := node.Parts["-0.5"]; ok {
+			returnValue += node.Parts["-0.5"].printTreeHelper(level+1, "-0.5")
+		}
+		for i := 0; i < lengthNode.Name.(int); i++ {
+			returnValue += node.Parts[strconv.Itoa(i)].printTreeHelper(level+1, strconv.Itoa(i))
+			if _, ok := node.Parts[strconv.Itoa(i)+".5"]; ok {
+				returnValue += node.Parts[strconv.Itoa(i)+".5"].printTreeHelper(level+1, strconv.Itoa(i)+".5")
+			}
+		}
+	}
+	return returnValue
 	return node.printTreeHelper(0, "0")
 }
 

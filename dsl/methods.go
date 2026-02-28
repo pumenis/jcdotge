@@ -3,6 +3,7 @@ package dsl
 import (
 	"bufio"
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"html/template"
 	"log"
@@ -512,6 +513,19 @@ func split(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Cont
 	return parser.NewContainerNode(out, parser.ChanStringType, in)
 }
 
+func jsonToMap(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	output := parser.NewContainerNode("{", parser.MapType, in)
+	result := map[string]string{}
+	err := json.Unmarshal([]byte(in.String()), &result)
+	if err != nil {
+		panic(err)
+	}
+	for key, value := range result {
+		output.Parts["."+key] = parser.NewContainerNode(value, parser.StringType, in)
+	}
+	return output
+}
+
 func clone(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	return parser.NewContainerNode(value.Name, value.Type, value)
 }
@@ -549,5 +563,6 @@ func init() {
 		"split":      split,
 		"clone":      clone,
 		"let":        let,
+		"jsontomap":  jsonToMap,
 	}
 }
