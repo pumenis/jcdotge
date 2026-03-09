@@ -162,7 +162,10 @@ func (node *ContainerNode) FindVariableParent(variable string) *ContainerNode {
 func (node *ContainerNode) VariableExists(variable string) bool {
 	parentNode := node.Parts["parent"]
 	for parentNode != nil {
-		if _, ok := parentNode.Parts[variable]; ok {
+		parentNode.Mu.RLock()
+		_, ok := parentNode.Parts[variable]
+		parentNode.Mu.RUnlock()
+		if ok {
 			return true
 		}
 		parentNode = parentNode.Parts["parent"]
@@ -173,7 +176,10 @@ func (node *ContainerNode) VariableExists(variable string) bool {
 func (node *ContainerNode) FindScopeParent() *ContainerNode {
 	node = node.Parts["parent"]
 	for node != nil {
-		if scopeParentNode, ok := node.Parts["scope"]; ok {
+		node.Mu.RLock()
+		scopeParentNode, ok := node.Parts["scope"]
+		node.Mu.RUnlock()
+		if ok {
 			return scopeParentNode.Parts["parent"]
 		}
 		node = node.Parts["parent"]

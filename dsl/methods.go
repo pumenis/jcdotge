@@ -530,6 +530,10 @@ func clone(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.C
 	return parser.NewContainerNode(value.Name, value.Type, value)
 }
 
+func tYPe(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	return parser.NewContainerNode(value.Type.String(), parser.StringType, value)
+}
+
 func let(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	scopeParent := value.FindScopeParent()
 	variable := value
@@ -564,5 +568,6 @@ func init() {
 		"clone":      clone,
 		"let":        let,
 		"jsontomap":  jsonToMap,
+		"type":       tYPe,
 	}
 }
