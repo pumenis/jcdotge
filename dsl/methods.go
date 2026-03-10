@@ -71,7 +71,9 @@ func whileRead(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.
 					}
 				}
 			case "do":
+				arg.Mu.Lock()
 				arg.Parts["scope"] = parser.NewContainerNode(true, parser.BoolType, arg)
+				arg.Mu.Unlock()
 				code = arg
 			}
 		} else {

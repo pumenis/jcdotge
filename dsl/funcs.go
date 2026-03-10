@@ -334,7 +334,9 @@ func while(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.C
 		name := arg.String()
 
 		if name == "do" {
+			arg.Mu.Lock()
 			arg.Parts["scope"] = parser.NewContainerNode(true, parser.BoolType, arg)
+			arg.Mu.Unlock()
 			code = arg
 		}
 

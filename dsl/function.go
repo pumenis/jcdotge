@@ -17,7 +17,9 @@ func function(value *parser.ContainerNode, args ...*parser.ContainerNode) *parse
 		for _, arg := range args {
 			bareArgs = append(bareArgs, arg.String())
 		}
+		code.Mu.Lock()
 		code.Parts["scope"] = parser.NewContainerNode(true, parser.BoolType, code)
+		code.Mu.Unlock()
 		for i, bareArg := range bareArgs {
 			code.Parts["$"+strconv.Itoa(i+1)] = parser.NewContainerNode(bareArg, parser.StringType, code)
 		}

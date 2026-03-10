@@ -10,7 +10,9 @@ func iF(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Cont
 	out := make(chan string)
 	ifCheckValue, ok := eval(value.Parts["0"]).Name.(bool)
 	if ok && ifCheckValue {
+		value.Parts["1"].Mu.Lock()
 		value.Parts["1"].Parts["scope"] = parser.NewContainerNode(true, parser.BoolType, value.Parts["1"])
+		value.Parts["1"].Mu.Unlock()
 		var components []*parser.ContainerNode
 		for i := 0; i < value.Parts["1"].Parts["length"].Name.(int); i++ {
 			components = append(components, value.Parts["1"].Parts[strconv.Itoa(i)])
