@@ -32,7 +32,7 @@ func runJCdotge(code string, args []string) {
 	if err != nil {
 		panic(err)
 	}
-	outNode := dsl.RunLang(script, args...)
+	outNode := dsl.RunLang(script, nil, args...)
 	out, ok := outNode.Name.(chan string)
 	if !ok {
 		panic("runJCdotge: it is not chan string")

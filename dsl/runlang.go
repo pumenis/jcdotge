@@ -17,6 +17,18 @@ var (
 	methodCallFuncs map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode
 )
 
+type Env struct {
+	Funcs   map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode
+	Methods map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode
+}
+
+func NewEnv() *Env {
+	return &Env{
+		Funcs:   make(map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode),
+		Methods: make(map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode),
+	}
+}
+
 func eval(value *parser.ContainerNode) *parser.ContainerNode {
 	if value.Type == parser.NodeType {
 		args := []*parser.ContainerNode{}
@@ -326,7 +338,17 @@ func moduloFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *par
 	}
 }
 
-func RunLang(value *parser.ContainerNode, args ...string) *parser.ContainerNode {
+func RunLang(value *parser.ContainerNode, env *Env, args ...string) *parser.ContainerNode {
+	if env != nil {
+		for key, value := range env.Funcs {
+			funcs[key] = value
+		}
+
+		for key, value := range env.Methods {
+			methodCallFuncs[key] = value
+		}
+	}
+
 	for i, arg := range args {
 		argName := strconv.Itoa(i)
 		value.Parts["$"+argName] = parser.NewContainerNode(arg, parser.StringType, value)

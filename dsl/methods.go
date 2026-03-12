@@ -242,7 +242,7 @@ func parsEvalFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *p
 	}
 	cst.Parts["parent"] = value
 
-	return RunLang(cst)
+	return RunLang(cst, nil)
 }
 
 // outFunc method takes string channel as input and outputs to scopes out channel
