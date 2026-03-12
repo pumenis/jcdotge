@@ -48,12 +48,12 @@ func TestRunLang(t *testing.T) {
 				argName := strconv.Itoa(i)
 				cst.Parts["$"+argName] = parser.NewContainerNode(arg, parser.StringType, cst)
 			}
-			got := dsl.RunLang(cst)
+			got := dsl.RunLang(cst, nil)
 			if !reflect.DeepEqual(fmt.Sprint(got.Name), tt.returnValue) {
 				t.Errorf("RunLang() value = %#v, want %#v", got, tt.returnValue)
 			}
 			stdout := captureStdout(func() {
-				dsl.RunLang(cst)
+				dsl.RunLang(cst, nil)
 			})
 			if !reflect.DeepEqual(stdout, tt.stdout) {
 				t.Errorf("RunLang() stdout = %#v, want %#v", stdout, tt.stdout)

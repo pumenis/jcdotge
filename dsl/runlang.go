@@ -536,6 +536,19 @@ func logic(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.C
 	}
 }
 
+func variableBuild(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	variableName := eval(args[0]).String()
+	parent := value.FindVariableParent("$" + variableName)
+	if parent != nil {
+		parent.Mu.RLock()
+		res := parent.Parts["$"+variableName]
+		parent.Mu.RUnlock()
+		return res
+	} else {
+		return parser.NewContainerNode(nil, parser.ContainerType, value)
+	}
+}
+
 func variableGet(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	variableName := args[0].String()
 	parent := value.FindVariableParent("$" + variableName)
@@ -698,6 +711,7 @@ func init() {
 		":(":                  subShell,
 		"(":                   chainFunc,
 		":{":                  rawChainFunc,
+		"${":                  variableBuild,
 		"$":                   variableGet,
 		"!":                   functionCall,
 		"-":                   flagFunc,
