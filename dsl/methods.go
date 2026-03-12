@@ -546,6 +546,110 @@ func let(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Con
 	return parser.NewContainerNode(true, parser.BoolType, value)
 }
 
+func plusEquals(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	switch value.Type {
+	case parser.Int8Type:
+		val, ok := value.Name.(int8)
+		if !ok {
+			panic("plusequals this is not int8 type")
+		}
+		value.Name = val + args[0].Name.(int8)
+	case parser.IntType:
+		val, ok := value.Name.(int)
+		if !ok {
+			panic("plusequals this is not int type")
+		}
+		value.Name = val + args[0].Name.(int)
+	case parser.Float64Type:
+		val, ok := value.Name.(float64)
+		if !ok {
+			panic("plusequals this is not float64 type")
+		}
+		value.Name = val + args[0].Name.(float64)
+	}
+
+	value.Name = value.Name
+	return value
+}
+
+func minusEquals(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	switch value.Type {
+	case parser.Int8Type:
+		val, ok := value.Name.(int8)
+		if !ok {
+			panic("plusequals this is not int8 type")
+		}
+		value.Name = val - args[0].Name.(int8)
+	case parser.IntType:
+		val, ok := value.Name.(int)
+		if !ok {
+			panic("plusequals this is not int type")
+		}
+		value.Name = val - args[0].Name.(int)
+	case parser.Float64Type:
+		val, ok := value.Name.(float64)
+		if !ok {
+			panic("plusequals this is not float64 type")
+		}
+		value.Name = val - args[0].Name.(float64)
+	}
+
+	value.Name = value.Name
+	return value
+}
+
+func plusPlus(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	switch value.Type {
+	case parser.Int8Type:
+		val, ok := value.Name.(int8)
+		if !ok {
+			panic("plusequals this is not int8 type")
+		}
+		value.Name = val + int8(1)
+	case parser.IntType:
+		val, ok := value.Name.(int)
+		if !ok {
+			panic("plusequals this is not int type")
+		}
+		value.Name = val + 1
+	case parser.Float64Type:
+		val, ok := value.Name.(float64)
+		if !ok {
+			panic("plusequals this is not float64 type")
+		}
+		value.Name = val + float64(1)
+	}
+
+	value.Name = value.Name
+	return value
+}
+
+func minusMinus(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	switch value.Type {
+	case parser.Int8Type:
+		val, ok := value.Name.(int8)
+		if !ok {
+			panic("plusequals this is not int8 type")
+		}
+		value.Name = val - int8(1)
+	case parser.IntType:
+		val, ok := value.Name.(int)
+		if !ok {
+			panic("plusequals this is not int type")
+		}
+		value.Name = val - 1
+	case parser.Float64Type:
+		val, ok := value.Name.(float64)
+		if !ok {
+			panic("plusequals this is not float64 type")
+		}
+		value.Name = val - float64(1)
+	}
+
+	value.Name = value.Name
+	return value
+}
+
 func init() {
 	methodCallFuncs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
 		"pad":        padMethod,
@@ -571,5 +675,9 @@ func init() {
 		"let":        let,
 		"jsontomap":  jsonToMap,
 		"type":       tYPe,
+		"+=":         plusEquals,
+		"-=":         minusEquals,
+		"--":         minusMinus,
+		"++":         plusPlus,
 	}
 }
