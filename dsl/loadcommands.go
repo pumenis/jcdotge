@@ -3,19 +3,17 @@ package dsl
 import (
 	"fmt"
 	"plugin"
+	"strings"
 
 	"github.com/pumenis/jcdotge/homedir"
 	"github.com/pumenis/jcdotge/parser"
-	"golang.org/x/text/cases"
-	"golang.org/x/text/language"
 )
 
 func ToCamelCase(s string) string {
 	if s == "" {
 		return s
 	}
-	caser := cases.Title(language.English)
-	return caser.String(s)
+	return strings.ToUpper(string(s[0])) + s[1:]
 }
 
 func loadFunc(name string) (func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode, error) {
