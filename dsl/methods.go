@@ -485,7 +485,13 @@ func read(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Conta
 	}
 	go func() {
 		i := 0
-		for line := range ch {
+		for {
+			line, ok := <-ch
+
+			if !ok {
+				break
+			}
+
 			out <- line
 			i++
 			if count == i {
@@ -568,7 +574,6 @@ func plusEquals(value *parser.ContainerNode, args ...*parser.ContainerNode) *par
 		value.Name = val + args[0].Name.(float64)
 	}
 
-	value.Name = value.Name
 	return value
 }
 
@@ -594,7 +599,6 @@ func minusEquals(value *parser.ContainerNode, args ...*parser.ContainerNode) *pa
 		value.Name = val - args[0].Name.(float64)
 	}
 
-	value.Name = value.Name
 	return value
 }
 
@@ -620,7 +624,6 @@ func plusPlus(value *parser.ContainerNode, args ...*parser.ContainerNode) *parse
 		value.Name = val + float64(1)
 	}
 
-	value.Name = value.Name
 	return value
 }
 
@@ -646,7 +649,6 @@ func minusMinus(value *parser.ContainerNode, args ...*parser.ContainerNode) *par
 		value.Name = val - float64(1)
 	}
 
-	value.Name = value.Name
 	return value
 }
 
