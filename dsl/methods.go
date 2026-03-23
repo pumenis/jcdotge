@@ -11,6 +11,7 @@ import (
 	"os/exec"
 	"strconv"
 	"strings"
+	"unicode/utf8"
 
 	"github.com/pumenis/jcdotge/homedir"
 	"github.com/pumenis/jcdotge/parser"
@@ -204,6 +205,10 @@ func exEc(in *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Conta
 }
 
 func lengthFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	if value.Type == parser.StringType {
+		return parser.NewContainerNode(utf8.RuneCountInString(value.String()), parser.IntType, value)
+	}
+
 	return value.Parts["length"]
 }
 
