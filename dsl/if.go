@@ -17,7 +17,6 @@ func iF(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Cont
 		for i := 0; i < value.Parts["1"].Parts["length"].Name.(int); i++ {
 			components = append(components, value.Parts["1"].Parts[strconv.Itoa(i)])
 		}
-		components = scopeEvalFunc(components...)
 		go func() {
 			for _, component := range components {
 				if component.Type == parser.ChanStringType {
@@ -38,7 +37,6 @@ func iF(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.Cont
 		for i := 0; i < elseblock.Parts["length"].Name.(int); i++ {
 			components = append(components, elseblock.Parts[strconv.Itoa(i)])
 		}
-		components = scopeEvalFunc(components...)
 		go func() {
 			for _, component := range components {
 				if component.Type == parser.ChanStringType {

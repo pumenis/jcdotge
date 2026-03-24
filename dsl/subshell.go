@@ -7,8 +7,8 @@ import (
 func subShell(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	out := make(chan string)
 	go func() {
-		components := scopeEvalFunc(args...)
-		for _, component := range components {
+		for _, component := range args {
+			component = eval(component)
 			if component.Type == parser.ChanStringType {
 				ch, ok := component.Name.(chan string)
 				if !ok {

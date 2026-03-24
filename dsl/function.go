@@ -28,8 +28,8 @@ func function(value *parser.ContainerNode, args ...*parser.ContainerNode) *parse
 			for i := 0; i < code.Parts["length"].Name.(int); i++ {
 				components = append(components, code.Parts[strconv.Itoa(i)])
 			}
-			components = scopeEvalFunc(components...)
 			for _, component := range components {
+				component = eval(component)
 				if component.Type == parser.ChanStringType {
 					ch, ok := component.Name.(chan string)
 					if !ok {

@@ -359,8 +359,8 @@ func while(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.C
 			for i := 0; i < code.Parts["length"].Name.(int); i++ {
 				components = append(components, code.Parts[strconv.Itoa(i)])
 			}
-			components = scopeEvalFunc(components...)
 			for _, component := range components {
+				component = eval(component)
 				if component.Type == parser.ChanStringType {
 					ch, ok := component.Name.(chan string)
 					if !ok {
@@ -411,6 +411,36 @@ func trimspace(value *parser.ContainerNode, args ...*parser.ContainerNode) *pars
 	return parser.NewContainerNode(strings.TrimSpace(args[0].String()), parser.StringType, value)
 }
 
+func RemoveFile(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	for _, arg := range args {
+		pattern := arg.String()
+		matches, err := filepath.Glob(pattern)
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "invalid glob pattern ", pattern, err.Error())
+		}
+
+		if len(matches) == 0 {
+			continue
+		}
+
+		for _, file := range matches {
+			info, err := os.Stat(file)
+			if err != nil {
+				fmt.Fprintln(os.Stderr, "failed to stat :", file, err.Error())
+			}
+
+			if info.IsDir() {
+				continue
+			}
+
+			if err := os.Remove(file); err != nil {
+				fmt.Fprintln(os.Stderr, "failed to remove ", file, err.Error())
+			}
+		}
+	}
+	return parser.NewContainerNode(true, parser.BoolType, value)
+}
+
 func init() {
 	funcs = map[string]func(*parser.ContainerNode, ...*parser.ContainerNode) *parser.ContainerNode{
 		"runscript":   runscript,
@@ -432,5 +462,6 @@ func init() {
 		"homeexpand":  homeexpand,
 		"trimspace":   trimspace,
 		"echogethtml": echoGetHTML,
+		"removefile":  RemoveFile,
 	}
 }

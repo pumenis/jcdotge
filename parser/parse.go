@@ -231,7 +231,16 @@ func (node *ContainerNode) Pop() *ContainerNode {
 	node.Parts["length"].Name = length
 	lastNode := node.Parts[strconv.Itoa(length)]
 	delete(node.Parts, strconv.Itoa(length))
-	return lastNode.Parts["parent"]
+	return lastNode
+}
+
+func (node *ContainerNode) GetLastNode() *ContainerNode {
+	length, ok := node.Parts["length"].Name.(int)
+	if !ok {
+		fmt.Println("invalid length")
+	}
+	lastNode := node.Parts[strconv.Itoa(length-1)]
+	return lastNode
 }
 
 func (node *ContainerNode) HalfPush(newNode *ContainerNode) {
@@ -317,15 +326,15 @@ func (node *ContainerNode) String() string {
 	return returnValue
 }
 
-func (node *ContainerNode) Highlight() string {
+func (node *ContainerNode) Inspect() string {
 	if node == nil {
 		return ""
 	}
 
-	return node.Highlight()
+	return node.printTreeHelper(0, "")
 }
 
-func (node *ContainerNode) Inspect() string {
+func (node *ContainerNode) Highlight() string {
 	if node == nil {
 		return ""
 	}
@@ -502,19 +511,30 @@ func Parse(code string) (*ContainerNode, error) {
 			continue
 		}
 
-		if strings.HasPrefix(token, ".") {
-			if strings.HasSuffix(token, "(") {
-				newNode := NewContainerNode(".", MethodType, current)
-				newNode.Push(NewContainerNode(token[1:], StringType, newNode))
-				current.Push(newNode)
-				current = newNode
-			} else if strings.HasSuffix(token, "()") {
-				newNode := NewContainerNode(token, EmptyMethodType, current)
-				current.Push(newNode)
-			} else {
-				newNode := NewContainerNode(token, PropertyType, current)
-				current.Push(newNode)
+		if strings.HasPrefix(token, ".") || token == "[" {
+			last := current.GetLastNode()
+			lastNode := last
+			if l, ok := lastNode.Parts["lastnode"]; ok {
+				lastNode = l
 			}
+			var newNode *ContainerNode
+			if token == "[" {
+				newNode = NewContainerNode("[", NodeType, current)
+				current = newNode
+			}
+			if strings.HasPrefix(token, ".") {
+				if strings.HasSuffix(token, "(") {
+					newNode = NewContainerNode(".", MethodType, current)
+					newNode.Push(NewContainerNode(token[1:], StringType, newNode))
+					current = newNode
+				} else if strings.HasSuffix(token, "()") {
+					newNode = NewContainerNode(token, EmptyMethodType, current)
+				} else {
+					newNode = NewContainerNode(token, PropertyType, current)
+				}
+			}
+			lastNode.Parts["chain"] = newNode
+			last.Parts["lastnode"] = newNode
 			continue
 		}
 

@@ -30,175 +30,82 @@ func NewEnv() *Env {
 }
 
 func eval(value *parser.ContainerNode) *parser.ContainerNode {
+	result := value
 	if value.Type == parser.NodeType {
 		args := []*parser.ContainerNode{}
 		for i := 0; i < value.Parts["length"].Name.(int); i++ {
 			args = append(args, value.Parts[strconv.Itoa(i)])
 		}
-		return evalFuncs[value.String()](value, args...)
+		result = evalFuncs[value.String()](value, args...)
 	}
-	return value
-}
-
-func chainFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
-	newNode := parser.NewContainerNode(value.Name, value.Type, value.Parts["parent"])
-	newNode.Parts = make(map[string]*parser.ContainerNode)
-	maps.Copy(newNode.Parts, value.Parts)
-	newNode.Parts["0"] = eval(newNode.Parts["0"])
-	newNode.Name = ":{"
-	return eval(newNode)
-}
-
-func scopeEvalFunc(args ...*parser.ContainerNode) []*parser.ContainerNode {
-	chain := []*parser.ContainerNode{}
-	result := []*parser.ContainerNode{}
-	for i, component := range args {
-		if component.Type == parser.EmptyMethodType ||
-			component.Type == parser.MethodType ||
-			component.String() == "[" ||
-			component.Type == parser.PropertyType {
-			chain = append(chain, component)
-			if len(args)-1 == i || (args[i+1].Type != parser.EmptyMethodType &&
-				args[i+1].Type != parser.MethodType &&
-				args[i+1].String() != "[" &&
-				args[i+1].Type != parser.PropertyType) {
-				variable := chain[0]
-
-				for _, currentNode := range chain[1:] {
-					if currentNode.String() == "[" {
-						key := eval(currentNode.Parts["0"])
-						if key.Type == parser.IntType {
-							variable = variable.Parts[key.String()]
-						} else {
-							variable = variable.Parts["."+key.String()]
-						}
-					} else if currentNode.Type == parser.PropertyType {
-						variable = variable.Parts[currentNode.String()]
-					} else if currentNode.Type == parser.EmptyMethodType {
-						name := currentNode.String()
-						name = name[1 : len(name)-2]
-						_, ok := methodCallFuncs[name]
-						if !ok {
-							fu, err := loadFunc(name)
-							if err != nil {
-								variable = exEc(variable, append([]*parser.ContainerNode{
-									parser.NewContainerNode(name, parser.StringType, variable),
-								}, args...)...)
-								continue
-							}
-							methodCallFuncs[name] = fu
-						}
-						variable = variable.Call(methodCallFuncs, name)
-					} else if currentNode.Type == parser.MethodType {
-						argms := []*parser.ContainerNode{}
-						for j := 1; j < currentNode.Parts["length"].Name.(int); j++ {
-							argms = append(argms, currentNode.Parts[strconv.Itoa(j)])
-						}
-						argms = scopeEvalFunc(argms...)
-						name := currentNode.Parts["0"].String()
-						name = name[:len(name)-1]
-						_, ok := methodCallFuncs[name]
-						if !ok {
-							fu, err := loadFunc(name)
-							if err != nil {
-								variable = exEc(variable, append([]*parser.ContainerNode{
-									parser.NewContainerNode(name, parser.StringType, variable),
-								}, argms...)...)
-								continue
-							}
-							methodCallFuncs[name] = fu
-						}
-						variable = variable.Call(methodCallFuncs, name, argms...)
-					}
-				}
-				eValue := variable
-				result = append(result, eValue)
-				chain = []*parser.ContainerNode{}
-			}
-		} else if len(args)-1 > i && (args[i+1].Type == parser.EmptyMethodType ||
-			args[i+1].Type == parser.MethodType ||
-			args[i+1].String() == "[" || args[i+1].Type == parser.PropertyType) {
-			eValue := eval(component)
-			chain = append(chain, eValue)
-		} else {
-			eValue := eval(component)
-			result = append(result, eValue)
-		}
+	if chain, ok := value.Parts["chain"]; ok {
+		result = chainedValueEvalFunc(result, chain)
 	}
+
 	return result
 }
 
-func rawChainFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
-	variable := args[0]
-	mapForDeletion := map[string]*parser.ContainerNode{}
-	var keyForDeletion string
-	isArray := false
+func chainFunc(value *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
+	newNode := parser.NewContainerNode(":{", parser.NodeType, value)
+	newNode.Parts = make(map[string]*parser.ContainerNode)
+	maps.Copy(newNode.Parts, value.Parts)
+	newNode.Parts["0"] = eval(newNode.Parts["0"])
+	return eval(newNode)
+}
 
-	for _, currentNode := range args[1:] {
-		if currentNode.String() == "[" {
-			key := eval(currentNode.Parts["0"])
-			if key.Type == parser.IntType {
-				mapForDeletion = variable.Parts
-				keyForDeletion = key.String()
-				isArray = true
-				variable = variable.Parts[key.String()]
-			} else {
-				mapForDeletion = variable.Parts
-				keyForDeletion = "." + key.String()
-				isArray = false
-				variable = variable.Parts["."+key.String()]
-			}
-		} else if currentNode.Type == parser.PropertyType {
-			mapForDeletion = variable.Parts
-			keyForDeletion = currentNode.String()
-			isArray = false
-			variable = variable.Parts[currentNode.String()]
-		} else if currentNode.Type == parser.EmptyMethodType {
-			if currentNode.String() == ".unset()" {
-
-				delete(mapForDeletion, keyForDeletion)
-				if isArray {
-					for i, _ := strconv.Atoi(keyForDeletion); i < mapForDeletion["length"].Name.(int)-1; i++ {
-						mapForDeletion[strconv.Itoa(i)] = mapForDeletion[strconv.Itoa(i+1)]
-					}
-					mapForDeletion["length"].Name = mapForDeletion["length"].Name.(int) - 1
-				}
-			} else {
-				name := currentNode.String()
-				name = name[1 : len(name)-2]
-				_, ok := methodCallFuncs[name]
-				if !ok {
-					fu, err := loadFunc(name)
-					if err != nil {
-						variable = exEc(variable, append([]*parser.ContainerNode{
-							parser.NewContainerNode(name, parser.StringType, variable),
-						}, args...)...)
-						continue
-					}
-					methodCallFuncs[name] = fu
-				}
-				variable = variable.Call(methodCallFuncs, name)
-			}
-		} else if currentNode.Type == parser.MethodType {
-			args := []*parser.ContainerNode{}
-			for i := 1; i < currentNode.Parts["length"].Name.(int); i++ {
-				args = append(args, eval(currentNode.Parts[strconv.Itoa(i)]))
-			}
-			name := currentNode.Parts["0"].String()
-			name = name[:len(name)-1]
-			_, ok := methodCallFuncs[name]
-			if !ok {
-				fu, err := loadFunc(name)
-				if err != nil {
-					variable = exEc(variable, append([]*parser.ContainerNode{
-						parser.NewContainerNode(name, parser.StringType, variable),
-					}, args...)...)
-					continue
-				}
-				methodCallFuncs[name] = fu
-			}
-			variable = variable.Call(methodCallFuncs, name, args...)
+func chainedValueEvalFunc(value *parser.ContainerNode, arg *parser.ContainerNode) *parser.ContainerNode {
+	variable := value
+	currentNode := arg
+	if currentNode.String() == "[" {
+		key := eval(currentNode.Parts["0"])
+		if key.Type == parser.IntType {
+			variable = variable.Parts[key.String()]
+		} else {
+			variable = variable.Parts["."+key.String()]
 		}
+	} else if currentNode.Type == parser.PropertyType {
+		variable = variable.Parts[currentNode.String()]
+	} else if currentNode.Type == parser.EmptyMethodType {
+		name := currentNode.String()
+		name = name[1 : len(name)-2]
+		_, ok := methodCallFuncs[name]
+		if !ok {
+			fu, err := loadFunc(name)
+			if err != nil {
+				variable = exEc(variable, append([]*parser.ContainerNode{
+					parser.NewContainerNode(name, parser.StringType, variable),
+				}, []*parser.ContainerNode{}...)...)
+				return variable
+			}
+			methodCallFuncs[name] = fu
+		}
+		variable = variable.Call(methodCallFuncs, name)
+	} else if currentNode.Type == parser.MethodType {
+		argms := []*parser.ContainerNode{}
+		a := []*parser.ContainerNode{}
+		for j := 1; j < currentNode.Parts["length"].Name.(int); j++ {
+			argms = append(argms, currentNode.Parts[strconv.Itoa(j)])
+		}
+		for _, argm := range argms {
+			a = append(a, eval(argm))
+		}
+		name := currentNode.Parts["0"].String()
+		name = name[:len(name)-1]
+		_, ok := methodCallFuncs[name]
+		if !ok {
+			fu, err := loadFunc(name)
+			if err != nil {
+				variable = exEc(variable, append([]*parser.ContainerNode{
+					parser.NewContainerNode(name, parser.StringType, variable),
+				}, a...)...)
+				return variable
+			}
+			methodCallFuncs[name] = fu
+		}
+		variable = variable.Call(methodCallFuncs, name, a...)
+	}
+	if chain, ok := currentNode.Parts["chain"]; ok {
+		variable = chainedValueEvalFunc(variable, chain)
 	}
 	return variable
 }
@@ -361,8 +268,8 @@ func RunLang(value *parser.ContainerNode, env *Env, args ...string) *parser.Cont
 func runScript(code *parser.ContainerNode, args ...*parser.ContainerNode) *parser.ContainerNode {
 	out := make(chan string)
 	go func() {
-		components := scopeEvalFunc(args...)
-		for _, component := range components {
+		for _, component := range args {
+			component = eval(component)
 			if component.Type == parser.ChanStringType {
 				ch, ok := component.Name.(chan string)
 				if !ok {
@@ -585,7 +492,11 @@ func functionCall(value *parser.ContainerNode, args ...*parser.ContainerNode) *p
 	}
 	functionName = functionName[:len(functionName)-1]
 	evalValue := parser.NewContainerNode(functionName, parser.NodeType, value)
-	arguments := scopeEvalFunc(args[1:]...)
+	arguments := []*parser.ContainerNode{}
+	argums := args[1:]
+	for _, argum := range argums {
+		arguments = append(arguments, eval(argum))
+	}
 	funct, ok := funcs[functionName]
 	var err error
 	if !ok {
@@ -706,11 +617,11 @@ func init() {
 		"&&(":                 logic,
 		"||(":                 logic,
 		"do":                  returnSelf,
+		":{":                  returnSelf,
 		"function":            function,
 		"if":                  iF,
 		":(":                  subShell,
 		"(":                   chainFunc,
-		":{":                  rawChainFunc,
 		"${":                  variableBuild,
 		"$":                   variableGet,
 		"!":                   functionCall,
